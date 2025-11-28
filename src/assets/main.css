@@ -73,7 +73,6 @@ body {
 .symbol-selector {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .symbol-list {
@@ -111,4 +110,22 @@ body {
 
 .log-toggle:hover {
   color: var(--primary-color);
+}
+
+.panel-separator {
+  margin: 1rem 0;
+  border: none;
+  border-top: 1px solid #e2e2e5;
+}
+
+.padded-block {
+  padding-top: 0.5rem;
+}
+
+.symbol-panel {
+  align-self: start;
+}
+
+.panel-bottom-spacer {
+  height: 0.5rem;
 }
