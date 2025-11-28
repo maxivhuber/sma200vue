@@ -1,9 +1,12 @@
 import type { StockDataPoint } from '@/composables/useStockData'
+import type { SMAResponse } from '@/composables/useStrategieData'
 import Dexie, { type EntityTable } from 'dexie'
 
-interface CachedSeries {
+export type CachedData = StockDataPoint[] | SMAResponse
+
+export interface CachedSeries {
   id: string
-  data: StockDataPoint[]
+  data: CachedData
   expireAt: number
 }
 
@@ -16,4 +19,3 @@ db.version(1).stores({
 })
 
 export { db }
-export type { CachedSeries }

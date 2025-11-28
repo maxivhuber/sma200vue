@@ -1,5 +1,6 @@
 import { apiFetch } from '@/api/client'
 import { db } from '@/db'
+import { DateTime } from 'luxon'
 import { ref, watch, type Ref } from 'vue'
 
 export interface StockDataPoint {
@@ -12,10 +13,8 @@ export interface StockDataPoint {
   Volume: number
 }
 
-function nextMidnight() {
-  const d = new Date()
-  d.setHours(24, 0, 0, 0)
-  return d.getTime()
+function nextMidnightNewYork(): number {
+  return DateTime.now().setZone('America/New_York').plus({ days: 1 }).startOf('day').toMillis()
 }
 
 export function useStockData(selectedSymbol: Ref<string | null>) {
@@ -25,12 +24,16 @@ export function useStockData(selectedSymbol: Ref<string | null>) {
 
   async function load(symbol: string) {
     const cached = await db.stockdata.get(symbol)
-    if (cached && Date.now() < cached.expireAt) return cached.data
+    if (cached && Date.now() < cached.expireAt) {
+      if (Array.isArray(cached.data)) {
+        return cached.data as StockDataPoint[]
+      }
+    }
     return null
   }
 
   async function save(symbol: string, newData: StockDataPoint[]) {
-    await db.stockdata.put({ id: symbol, data: newData, expireAt: nextMidnight() })
+    await db.stockdata.put({ id: symbol, data: newData, expireAt: nextMidnightNewYork() })
   }
 
   async function fetchData(symbol: string) {
@@ -39,8 +42,10 @@ export function useStockData(selectedSymbol: Ref<string | null>) {
       data.value = cached
       return
     }
+
     loading.value = true
     error.value = null
+
     try {
       const result = await apiFetch<StockDataPoint[]>(
         `/history?symbol=${encodeURIComponent(symbol)}`,

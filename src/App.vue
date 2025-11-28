@@ -1,22 +1,30 @@
 <script setup lang="ts">
 import { useStockData } from '@/composables/useStockData'
+import { useStrategieData } from '@/composables/useStrategieData'
 import { useStrategies } from '@/composables/useStrategies'
 import { useSymbols } from '@/composables/useSymbols'
 import { ref } from 'vue'
+
+import BaseStockChart from './components/BaseStockChart.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
-import StockChart from './components/StockChart.vue'
+import SmaStockChart from './components/SmaStockChart.vue'
 import StrategieSelector from './components/StrategieSelector.vue'
 import SymbolSelector from './components/SymbolSelector.vue'
 
 const { symbols, loading: symbolsLoading, error: symbolsError } = useSymbols()
-
 const { strategies, loading: strategiesLoading, error: strategiesError } = useStrategies()
 
 const selectedSymbol = ref<string | null>(null)
 const selectedStrategy = ref<string | null>(null)
 const logScale = ref(false)
 
-const { data: stockData, loading: dataLoading, error: dataError } = useStockData(selectedSymbol)
+const { data: stockData, loading: stockLoading, error: stockError } = useStockData(selectedSymbol)
+
+const {
+  data: strategieData,
+  loading: strategieLoading,
+  error: strategieError,
+} = useStrategieData(selectedSymbol, selectedStrategy)
 </script>
 
 <template>
@@ -50,7 +58,11 @@ const { data: stockData, loading: dataLoading, error: dataError } = useStockData
             </div>
 
             <div v-else>
-              <StrategieSelector v-model="selectedStrategy" :strategies="strategies" />
+              <StrategieSelector
+                v-model="selectedStrategy"
+                :strategies="strategies"
+                :disabled="!selectedSymbol"
+              />
             </div>
           </div>
 
@@ -70,13 +82,32 @@ const { data: stockData, loading: dataLoading, error: dataError } = useStockData
       <div class="panel chart-area">
         <div v-if="!selectedSymbol" class="status">Please select a symbol from the left panel.</div>
 
-        <div v-else-if="dataLoading" class="status">
+        <div v-else-if="stockLoading || strategieLoading" class="status">
           <LoadingSpinner />
         </div>
 
-        <div v-else-if="dataError" class="status error">Error loading data: {{ dataError }}</div>
+        <div v-else-if="stockError || strategieError" class="status error">
+          {{ stockError || strategieError }}
+        </div>
 
-        <StockChart v-else :symbol="selectedSymbol" :data="stockData" :log-scale="logScale" />
+        <BaseStockChart
+          v-else-if="selectedSymbol && !selectedStrategy"
+          :symbol="selectedSymbol"
+          :strategie="null"
+          :data="stockData"
+          :log-scale="logScale"
+        />
+
+        <SmaStockChart
+          v-else-if="selectedSymbol && selectedStrategy === 'sma' && strategieData"
+          :symbol="selectedSymbol"
+          :data="strategieData"
+          :log-scale="logScale"
+        />
+
+        <div v-else>
+          Strategy <strong>{{ selectedStrategy }}</strong> not supported yet.
+        </div>
       </div>
     </section>
   </main>

@@ -7,7 +7,13 @@ import type { StockDataPoint } from '@/composables/useStockData'
 import * as echarts from 'echarts'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-const props = defineProps<{ symbol: string; data: StockDataPoint[] | null; logScale: boolean }>()
+const props = defineProps<{
+  symbol: string
+  strategie: string | null
+  data: StockDataPoint[] | null
+  logScale: boolean
+}>()
+
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 
@@ -16,7 +22,9 @@ const getPrimaryColor = () =>
 
 const renderChart = () => {
   if (!chart || !props.data) return
+
   const color = getPrimaryColor()
+
   chart.setOption({
     color: [color],
     title: { text: props.symbol },
@@ -26,8 +34,16 @@ const renderChart = () => {
       ? { type: 'log', logBase: 10, minorSplitLine: { show: true } }
       : { type: 'value' },
     dataZoom: [{ type: 'inside' }, { type: 'slider' }],
-    series: [{ name: 'Close', data: props.data.map((p) => p.Close), type: 'line', smooth: true }],
+    series: [
+      {
+        name: 'Close',
+        data: props.data.map((p) => p.Close),
+        type: 'line',
+        smooth: true,
+      },
+    ],
   })
+
   chart.resize()
 }
 
