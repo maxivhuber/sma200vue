@@ -20,26 +20,101 @@ let chart: echarts.ECharts | null = null
 const getPrimaryColor = () =>
   getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
 
-const renderChart = () => {
+const renderBaseChart = () => {
   if (!chart || !props.data) return
 
-  const color = getPrimaryColor()
+  const primary = getPrimaryColor()
+  const dates = props.data.map((p) => p.Date)
+  const closes = props.data.map((p) => p.Close)
+
+  const ytdYear = new Date().getFullYear()
+  const ytdStartDate = `${ytdYear}-01-01`
+  const startIndex = dates.findIndex((d) => d >= ytdStartDate)
+  const endIndex = dates.length - 1
 
   chart.setOption({
-    color: [color],
-    title: { text: props.symbol },
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: props.data.map((p) => p.Date) },
+    color: [primary],
+
+    title: {
+      text: props.symbol,
+      left: 'center',
+      top: 10,
+      textStyle: { fontSize: 16, fontWeight: 'bold' },
+    },
+
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      backgroundColor: 'rgba(40,40,40,0.85)',
+      borderWidth: 0,
+      textStyle: { color: '#fff' },
+      valueFormatter: (v: number) => Number(v).toFixed(2),
+    },
+
+    legend: {
+      left: 'center',
+      top: 40,
+      itemGap: 30,
+    },
+
+    grid: {
+      left: 50,
+      right: 30,
+      top: 80,
+      bottom: 50,
+    },
+
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: '#666' } },
+      axisLabel: {
+        color: '#777',
+        formatter: (v: string) => v.split('T')[0],
+      },
+    },
+
     yAxis: props.logScale
-      ? { type: 'log', logBase: 10, minorSplitLine: { show: true } }
-      : { type: 'value' },
-    dataZoom: [{ type: 'inside' }, { type: 'slider' }],
+      ? {
+          type: 'log',
+          logBase: 10,
+          minorSplitLine: { show: true },
+          scale: true,
+          min: 'dataMin',
+          max: 'dataMax',
+          axisLabel: {
+            formatter: (v: number) => Number(v).toFixed(2),
+            color: '#777',
+          },
+          axisLine: { lineStyle: { color: '#666' } },
+        }
+      : {
+          type: 'value',
+          scale: true,
+          min: 'dataMin',
+          max: 'dataMax',
+          axisLabel: {
+            formatter: (v: number) => Number(v).toFixed(2),
+            color: '#777',
+          },
+          axisLine: { lineStyle: { color: '#666' } },
+        },
+
+    dataZoom: [
+      { type: 'inside', zoomOnMouseWheel: true, startValue: startIndex, endValue: endIndex },
+      { type: 'slider', height: 20, bottom: 10, startValue: startIndex, endValue: endIndex },
+    ],
+
     series: [
       {
         name: 'Close',
-        data: props.data.map((p) => p.Close),
         type: 'line',
+        symbol: 'none',
         smooth: true,
+        data: closes,
+        lineStyle: { width: 2.2, color: primary },
+        areaStyle: { color: 'rgba(150,150,200,0.25)' },
       },
     ],
   })
@@ -51,11 +126,11 @@ onMounted(async () => {
   await nextTick()
   if (!chartRef.value) return
   chart = echarts.init(chartRef.value)
-  renderChart()
+  renderBaseChart()
   window.addEventListener('resize', () => chart?.resize())
 })
 
-watch([() => props.data, () => props.logScale], renderChart)
+watch([() => props.data, () => props.logScale], renderBaseChart)
 
 onBeforeUnmount(() => chart?.dispose())
 </script>

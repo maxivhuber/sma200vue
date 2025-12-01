@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
+import { useLiveStrategyData } from '@/composables/useLiveStrategyData'
+import { mergeSmaData } from '@/composables/useSmaMerge'
 import { useStockData } from '@/composables/useStockData'
 import { useStrategieData } from '@/composables/useStrategieData'
 import { useStrategies } from '@/composables/useStrategies'
 import { useSymbols } from '@/composables/useSymbols'
-import { ref } from 'vue'
 
 import BaseStockChart from './components/BaseStockChart.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
@@ -11,20 +14,26 @@ import SmaStockChart from './components/SmaStockChart.vue'
 import StrategieSelector from './components/StrategieSelector.vue'
 import SymbolSelector from './components/SymbolSelector.vue'
 
-const { symbols, loading: symbolsLoading, error: symbolsError } = useSymbols()
-const { strategies, loading: strategiesLoading, error: strategiesError } = useStrategies()
-
 const selectedSymbol = ref<string | null>(null)
 const selectedStrategy = ref<string | null>(null)
 const logScale = ref(false)
 
+const { symbols, loading: symbolsLoading, error: symbolsError } = useSymbols()
+const { strategies, loading: strategiesLoading, error: strategiesError } = useStrategies()
 const { data: stockData, loading: stockLoading, error: stockError } = useStockData(selectedSymbol)
-
 const {
   data: strategieData,
   loading: strategieLoading,
   error: strategieError,
 } = useStrategieData(selectedSymbol, selectedStrategy)
+
+const { liveData } = useLiveStrategyData(selectedSymbol, selectedStrategy)
+
+const finalSmaData = computed(() => {
+  if (selectedStrategy.value !== 'sma') return null
+  if (!liveData.value) return strategieData.value
+  return mergeSmaData(strategieData.value, liveData.value)
+})
 </script>
 
 <template>
@@ -45,18 +54,15 @@ const {
 
         <div v-else class="symbol-selector">
           <SymbolSelector v-model="selectedSymbol" :symbols="symbols" />
-
           <hr class="panel-separator" />
 
           <div class="strategy-section padded-block">
             <div v-if="strategiesLoading" class="status">
               <LoadingSpinner />
             </div>
-
             <div v-else-if="strategiesError" class="status error">
               Failed to load strategies: {{ strategiesError }}
             </div>
-
             <div v-else>
               <StrategieSelector
                 v-model="selectedStrategy"
@@ -99,9 +105,9 @@ const {
         />
 
         <SmaStockChart
-          v-else-if="selectedSymbol && selectedStrategy === 'sma' && strategieData"
+          v-else-if="selectedSymbol && selectedStrategy === 'sma' && finalSmaData"
           :symbol="selectedSymbol"
-          :data="strategieData"
+          :data="finalSmaData"
           :log-scale="logScale"
         />
 

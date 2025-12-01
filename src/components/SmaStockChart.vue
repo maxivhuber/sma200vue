@@ -35,6 +35,11 @@ const renderChart = () => {
   const r = props.data.result
   const primary = getPrimaryColor()
 
+  const ytdYear = new Date().getFullYear()
+  const ytdStartDate = `${ytdYear}-01-01`
+  const startIndex = r.dates.findIndex((d) => d >= ytdStartDate)
+  const endIndex = r.dates.length - 1
+
   chart.setOption({
     title: {
       text: props.symbol,
@@ -42,26 +47,29 @@ const renderChart = () => {
       top: 10,
       textStyle: { fontSize: 16, fontWeight: 'bold' },
     },
+
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'cross' },
       backgroundColor: 'rgba(40,40,40,0.85)',
       borderWidth: 0,
       textStyle: { color: '#fff' },
-      valueFormatter: (v: number) => Number(v).toFixed(3),
+      valueFormatter: (v: number) => Number(v).toFixed(2),
     },
+
     legend: {
-      data: ['Price', 'SMA', 'Upper Band', 'Lower Band', 'Signals'],
       left: 'center',
       top: 40,
-      itemGap: 20,
+      itemGap: 30,
     },
+
     grid: {
       left: 50,
       right: 30,
       top: 80,
       bottom: 50,
     },
+
     xAxis: {
       type: 'category',
       data: r.dates,
@@ -72,6 +80,7 @@ const renderChart = () => {
         formatter: (v: string) => v.split('T')[0],
       },
     },
+
     yAxis: props.logScale
       ? {
           type: 'log',
@@ -81,7 +90,7 @@ const renderChart = () => {
           min: 'dataMin',
           max: 'dataMax',
           axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(3),
+            formatter: (v: number) => Number(v).toFixed(2),
             color: '#777',
           },
           axisLine: { lineStyle: { color: '#666' } },
@@ -92,29 +101,32 @@ const renderChart = () => {
           min: 'dataMin',
           max: 'dataMax',
           axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(3),
+            formatter: (v: number) => Number(v).toFixed(2),
             color: '#777',
           },
           axisLine: { lineStyle: { color: '#666' } },
         },
+
     dataZoom: [
-      { type: 'inside', zoomOnMouseWheel: true },
-      { type: 'slider', height: 20, bottom: 10 },
+      { type: 'inside', zoomOnMouseWheel: true, startValue: startIndex, endValue: endIndex },
+      { type: 'slider', height: 20, bottom: 10, startValue: startIndex, endValue: endIndex },
     ],
+
     series: [
       {
         name: 'Price',
         type: 'line',
+        symbol: 'none',
         smooth: true,
-        showSymbol: false,
         data: r.prices,
         lineStyle: { width: 2.2, color: primary },
+        areaStyle: { color: 'rgba(150,150,200,0.25)' },
       },
       {
         name: 'SMA',
         type: 'line',
+        symbol: 'none',
         smooth: true,
-        showSymbol: false,
         data: r.sma,
         lineStyle: { width: 1.5, color: '#888' },
       },
@@ -122,17 +134,17 @@ const renderChart = () => {
         name: 'Upper Band',
         type: 'line',
         smooth: true,
-        showSymbol: false,
+        symbol: 'none',
         data: r.upper_band,
-        lineStyle: { width: 1, color: '#c77d7d', type: 'dashed' },
+        lineStyle: { width: 1, color: 'green', type: 'dashed' },
       },
       {
         name: 'Lower Band',
         type: 'line',
+        symbol: 'none',
         smooth: true,
-        showSymbol: false,
         data: r.lower_band,
-        lineStyle: { width: 1, color: '#7db3c7', type: 'dashed' },
+        lineStyle: { width: 1, color: 'red', type: 'dashed' },
       },
       {
         name: 'Signals',
