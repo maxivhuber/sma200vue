@@ -1,7 +1,8 @@
 import { API_CONFIG } from './config'
 
 export async function apiFetch<T>(path: string): Promise<T> {
-  const url = new URL(path, API_CONFIG.baseURL).toString()
+  const cleanPath = path.replace(/^\//, '')
+  const url = new URL(cleanPath, API_CONFIG.baseURL).toString()
 
   const response = await fetch(url, {
     method: 'GET',
