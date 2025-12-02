@@ -1,20 +1,18 @@
 import { apiFetch } from '@/api/client'
 import { db } from '@/db'
-import { DateTime } from 'luxon'
+import type { StockDataPoint } from '@/types/StockDataPoint'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { ref, watch, type Ref } from 'vue'
 
-export interface StockDataPoint {
-  Date: string
-  Open: number
-  High: number
-  Low: number
-  Close: number
-  'Adj Close': number
-  Volume: number
-}
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 function nextMidnightNewYork(): number {
-  return DateTime.now().setZone('America/New_York').plus({ days: 1 }).startOf('day').toMillis()
+  const nowNY = dayjs().tz('America/New_York')
+  const nextMidnight = nowNY.add(1, 'day').startOf('day')
+  return nextMidnight.valueOf()
 }
 
 export function useStockData(selectedSymbol: Ref<string | null>) {

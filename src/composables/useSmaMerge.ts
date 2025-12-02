@@ -1,5 +1,5 @@
-import type { LiveStrategyMessage } from './useLiveStrategyData'
-import type { SMAResponse } from './useStrategieData'
+import type { LiveStrategyMessage } from '@/types/LiveStrategyMessage'
+import type { SMAResponse } from '@/types/SMA'
 
 export function mergeSmaData(
   base: SMAResponse | null,

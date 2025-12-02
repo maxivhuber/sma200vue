@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import type { StockDataPoint } from '@/composables/useStockData'
+import type { StockDataPoint } from '@/types/StockDataPoint'
 import * as echarts from 'echarts'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 

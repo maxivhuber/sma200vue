@@ -1,29 +1,20 @@
 import { apiFetch } from '@/api/client'
 import { db } from '@/db'
-import { DateTime } from 'luxon'
+import type { SMAResponse } from '@/types/SMA'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import type { Ref } from 'vue'
 import { ref, watch } from 'vue'
 
-export interface SMAResult {
-  dates: string[]
-  prices: number[]
-  sma: number[]
-  upper_band: number[]
-  lower_band: number[]
-  signal: string[]
-}
-
-export interface SMAResponse {
-  symbol: string
-  strategy: 'sma'
-  timestamp: string
-  result: SMAResult
-}
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 function nextMidnightNewYork(): number {
-  return DateTime.now().setZone('America/New_York').plus({ days: 1 }).startOf('day').toMillis()
+  const nowNY = dayjs().tz('America/New_York')
+  const nextMidnight = nowNY.add(1, 'day').startOf('day')
+  return nextMidnight.valueOf()
 }
-
 export function useStrategieData(symbol: Ref<string | null>, strategy: Ref<string | null>) {
   const data = ref<SMAResponse | null>(null)
   const loading = ref(false)

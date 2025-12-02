@@ -39,7 +39,7 @@ const finalSmaData = computed(() => {
 <template>
   <main class="app">
     <header class="panel header">
-      <h2>Stock Chart App</h2>
+      <h2>ChartLab🧪🧫</h2>
     </header>
 
     <section class="content">

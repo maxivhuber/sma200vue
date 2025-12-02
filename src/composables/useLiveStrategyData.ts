@@ -1,19 +1,6 @@
 import { API_CONFIG } from '@/api/config'
+import type { LiveStrategyMessage } from '@/types/LiveStrategyMessage'
 import { onBeforeUnmount, ref, watch, type Ref } from 'vue'
-
-export interface LiveStrategyMessage {
-  symbol: string
-  strategy: string
-  timestamp: string
-  result: {
-    date: string
-    prices: number
-    sma: number
-    upper_band: number
-    lower_band: number
-    signal: string
-  }
-}
 
 export function useLiveStrategyData(symbol: Ref<string | null>, strategy: Ref<string | null>) {
   const liveData = ref<LiveStrategyMessage | null>(null)
