@@ -1,3 +1,3 @@
 export const API_CONFIG = {
-  baseURL: 'http://sma200-backend:8000',
+  baseURL: 'https://invest.mhuber.dev:8443/api',
 }
