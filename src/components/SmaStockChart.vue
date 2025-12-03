@@ -3,6 +3,7 @@
 </template>
 
 <script setup lang="ts">
+import type { DataZoomEvent } from '@/types/DataZoomEvent'
 import * as echarts from 'echarts'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
@@ -24,20 +25,35 @@ const props = defineProps<{
   logScale: boolean
 }>()
 
+const zoomStartValue = ref<number | null>(null)
+const zoomEndValue = ref<number | null>(null)
+
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 
 const getPrimaryColor = () =>
   getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
 
+function isDataZoomEvent(raw: unknown): raw is DataZoomEvent {
+  return typeof raw === 'object' && raw !== null && (raw as { type?: unknown }).type === 'datazoom'
+}
+
 const renderChart = () => {
   if (!chart || !props.data) return
+
   const r = props.data.result
   const primary = getPrimaryColor()
-  const ytdYear = new Date().getFullYear()
-  const ytdStartDate = `${ytdYear}-01-01`
-  const startIndex = r.dates.findIndex((d) => d >= ytdStartDate)
-  const endIndex = r.dates.length - 1
+
+  if (zoomStartValue.value === null || zoomEndValue.value === null) {
+    const ytdYear = new Date().getFullYear()
+    const ytdStartDate = `${ytdYear}-01-01`
+    const startIndex = r.dates.findIndex((d) => d >= ytdStartDate)
+    const endIndex = r.dates.length - 1
+
+    zoomStartValue.value = startIndex
+    zoomEndValue.value = endIndex
+  }
+
   chart.setOption({
     title: {
       text: props.symbol,
@@ -80,12 +96,7 @@ const renderChart = () => {
         textStyle: { fontSize: 12, color: '#555' },
       },
     ],
-    grid: {
-      left: 50,
-      right: 30,
-      top: 80,
-      bottom: 50,
-    },
+    grid: { left: 50, right: 30, top: 80, bottom: 50 },
     xAxis: {
       type: 'category',
       data: r.dates,
@@ -104,10 +115,7 @@ const renderChart = () => {
           scale: true,
           min: 'dataMin',
           max: 'dataMax',
-          axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(2),
-            color: '#777',
-          },
+          axisLabel: { color: '#777', formatter: (v: number) => Number(v).toFixed(2) },
           axisLine: { lineStyle: { color: '#666' } },
         }
       : {
@@ -115,15 +123,23 @@ const renderChart = () => {
           scale: true,
           min: 'dataMin',
           max: 'dataMax',
-          axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(2),
-            color: '#777',
-          },
+          axisLabel: { color: '#777', formatter: (v: number) => Number(v).toFixed(2) },
           axisLine: { lineStyle: { color: '#666' } },
         },
     dataZoom: [
-      { type: 'inside', zoomOnMouseWheel: true, startValue: startIndex, endValue: endIndex },
-      { type: 'slider', height: 20, bottom: 10, startValue: startIndex, endValue: endIndex },
+      {
+        type: 'inside',
+        zoomOnMouseWheel: true,
+        startValue: zoomStartValue.value,
+        endValue: zoomEndValue.value,
+      },
+      {
+        type: 'slider',
+        height: 20,
+        bottom: 10,
+        startValue: zoomStartValue.value,
+        endValue: zoomEndValue.value,
+      },
     ],
     series: [
       {
@@ -186,15 +202,43 @@ const renderChart = () => {
     ],
   })
 }
+
 onMounted(async () => {
   await nextTick()
   if (!chartRef.value) return
+
   chart = echarts.init(chartRef.value)
+
+  chart.on('datazoom', (evt: unknown) => {
+    if (!chart) return
+    if (!isDataZoomEvent(evt)) return
+
+    const option = chart.getOption()
+    const dz = (
+      option.dataZoom as Array<{ startValue?: number; endValue?: number }> | undefined
+    )?.[0]
+
+    if (!dz) return
+
+    zoomStartValue.value = dz.startValue ?? null
+    zoomEndValue.value = dz.endValue ?? null
+  })
+
   renderChart()
   window.addEventListener('resize', () => chart?.resize())
 })
 
+// Re-render chart when data or logScale changes — but keep zoom
 watch([() => props.data, () => props.logScale], renderChart)
+
+// Reset zoom when symbol changes → next renderChart() uses YTD
+watch(
+  () => props.symbol,
+  () => {
+    zoomStartValue.value = null
+    zoomEndValue.value = null
+  },
+)
 
 onBeforeUnmount(() => chart?.dispose())
 </script>
