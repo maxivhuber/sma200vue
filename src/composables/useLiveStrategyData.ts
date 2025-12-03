@@ -30,10 +30,18 @@ export function useLiveStrategyData(symbol: Ref<string | null>, strategy: Ref<st
     }
   }
 
-  watch([symbol, strategy], () => {
-    disconnect()
-    connect()
-  })
+  watch(
+    [symbol, strategy],
+    () => {
+      liveData.value = null
+      disconnect()
+
+      if (symbol.value && strategy.value) {
+        connect()
+      }
+    },
+    { flush: 'post' },
+  )
 
   onBeforeUnmount(disconnect)
 
