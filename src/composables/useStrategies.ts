@@ -1,8 +1,9 @@
 import { getStrategies } from '@/api/requests'
+import type { LabeledItem } from '@/types/LabeledItem'
 import { onMounted, ref } from 'vue'
 
 export function useStrategies() {
-  const strategies = ref<string[]>([])
+  const strategies = ref<LabeledItem[]>([])
   const loading = ref(false)
   const error = ref<unknown>(null)
 

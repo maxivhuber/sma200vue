@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 
 const props = defineProps<{
-  strategies: string[]
+  strategies: { value: string; label: string }[]
   modelValue?: string | null
 }>()
 
@@ -27,11 +27,11 @@ watch(selected, (v) => emit('update:modelValue', v))
     <ul v-else class="symbol-list strategy-list">
       <li
         v-for="strategy in strategies"
-        :key="strategy"
-        @click="selected = selected === strategy ? null : strategy"
-        :class="{ selected: strategy === selected }"
+        :key="strategy.value"
+        @click="selected = selected === strategy.value ? null : strategy.value"
+        :class="{ selected: strategy.value === selected }"
       >
-        {{ strategy }}
+        {{ strategy.label }}
       </li>
     </ul>
   </div>
