@@ -1,4 +1,4 @@
-import { API_CONFIG } from '@/api/config'
+import { WS_CONFIG } from '@/api/config'
 import type { LiveStrategyMessage } from '@/types/LiveStrategyMessage'
 import { onBeforeUnmount, ref, watch, type Ref } from 'vue'
 
@@ -9,13 +9,8 @@ export function useLiveStrategyData(symbol: Ref<string | null>, strategy: Ref<st
   const connect = () => {
     if (!symbol.value || !strategy.value) return
 
-    const wsBase = API_CONFIG.baseURL.replace('http://', 'ws://')
-
-    const path = `/analytics/${strategy.value}/ws`
-    const url = new URL(path, wsBase)
-    url.searchParams.set('symbol', symbol.value)
-
-    ws = new WebSocket(url.toString())
+    const url = `${WS_CONFIG.baseURL}analytics/${strategy.value}?symbol=${symbol.value}`
+    ws = new WebSocket(url)
 
     ws.onmessage = (e) => {
       try {
