@@ -1,23 +1,33 @@
 <script setup lang="ts">
+import type { LabeledItem } from '@/types/LabeledItem'
 import { ref, watch } from 'vue'
 
 const props = defineProps<{
-  strategies: { value: string; label: string }[]
-  modelValue?: string | null
+  strategies: LabeledItem[]
+  modelValue?: LabeledItem | null
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | null): void
+  'update:modelValue': [value: LabeledItem | null]
 }>()
 
-const selected = ref<string | null>(props.modelValue ?? null)
+const selected = ref<LabeledItem | null>(props.modelValue ?? null)
 
 watch(
   () => props.modelValue,
   (v) => (selected.value = v ?? null),
 )
 
-watch(selected, (v) => emit('update:modelValue', v))
+function toggle(item: LabeledItem) {
+  if (selected.value?.value === item.value) {
+    selected.value = null
+    emit('update:modelValue', null)
+  } else {
+    selected.value = item
+    emit('update:modelValue', item)
+  }
+}
 </script>
 
 <template>
@@ -28,8 +38,8 @@ watch(selected, (v) => emit('update:modelValue', v))
       <li
         v-for="strategy in strategies"
         :key="strategy.value"
-        @click="selected = selected === strategy.value ? null : strategy.value"
-        :class="{ selected: strategy.value === selected }"
+        @click="!disabled && toggle(strategy)"
+        :class="{ selected: strategy.value === selected?.value, disabled }"
       >
         {{ strategy.label }}
       </li>

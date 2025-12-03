@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-
 import { useLiveStrategyData } from '@/composables/useLiveStrategyData'
 import { mergeSmaData } from '@/composables/useSmaMerge'
 import { useStockData } from '@/composables/useStockData'
 import { useStrategieData } from '@/composables/useStrategieData'
 import { useStrategies } from '@/composables/useStrategies'
 import { useSymbols } from '@/composables/useSymbols'
+import { computed, ref } from 'vue'
 
 import BaseStockChart from './components/BaseStockChart.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
@@ -14,26 +13,39 @@ import SmaStockChart from './components/SmaStockChart.vue'
 import StrategieSelector from './components/StrategieSelector.vue'
 import SymbolSelector from './components/SymbolSelector.vue'
 
-const selectedSymbol = ref<string | null>(null)
-const selectedStrategy = ref<string | null>(null)
+import type { LabeledItem } from './types/LabeledItem'
+
+const selectedSymbol = ref<LabeledItem | null>(null)
+const selectedStrategy = ref<LabeledItem | null>(null)
+
+const selectedSymbolValue = computed(() => selectedSymbol.value?.value ?? null)
+const selectedSymbolLabel = computed(() => selectedSymbol.value?.label ?? null)
+
+const selectedStrategyValue = computed(() => selectedStrategy.value?.value ?? null)
+const selectedStrategyLabel = computed(() => selectedStrategy.value?.label ?? null)
+
 const logScale = ref(false)
 
 const { symbols, loading: symbolsLoading, error: symbolsError } = useSymbols()
 const { strategies, loading: strategiesLoading, error: strategiesError } = useStrategies()
-const { data: stockData, loading: stockLoading, error: stockError } = useStockData(selectedSymbol)
+
+const {
+  data: stockData,
+  loading: stockLoading,
+  error: stockError,
+} = useStockData(selectedSymbolValue)
+
 const {
   data: strategieData,
   loading: strategieLoading,
   error: strategieError,
-} = useStrategieData(selectedSymbol, selectedStrategy)
+} = useStrategieData(selectedSymbolValue, selectedStrategyValue)
 
-const { liveData } = useLiveStrategyData(selectedSymbol, selectedStrategy)
+const { liveData } = useLiveStrategyData(selectedSymbolValue, selectedStrategyValue)
 
-const finalSmaData = computed(() => {
-  if (selectedStrategy.value !== 'sma') return null
-  if (!liveData.value) return strategieData.value
-  return mergeSmaData(strategieData.value, liveData.value)
-})
+const finalSmaData = computed(() =>
+  selectedStrategyValue.value === 'sma' ? mergeSmaData(strategieData.value, liveData.value) : null,
+)
 </script>
 
 <template>
@@ -53,8 +65,12 @@ const finalSmaData = computed(() => {
         </div>
 
         <div v-else class="symbol-selector">
+          <h3 class="panel-title">Symbols</h3>
           <SymbolSelector v-model="selectedSymbol" :symbols="symbols" />
+
           <hr class="panel-separator" />
+
+          <h3 class="panel-title">Strategies</h3>
 
           <div class="strategy-section padded-block">
             <div v-if="strategiesLoading" class="status">
@@ -74,14 +90,10 @@ const finalSmaData = computed(() => {
 
           <hr class="panel-separator" />
 
-          <ul class="symbol-list">
-            <li>
-              <label class="log-toggle">
-                <input type="checkbox" v-model="logScale" />
-                <span>Log scale</span>
-              </label>
-            </li>
-          </ul>
+          <label class="log-toggle">
+            <input type="checkbox" v-model="logScale" />
+            <span>Log scale</span>
+          </label>
         </div>
       </div>
 
@@ -97,22 +109,22 @@ const finalSmaData = computed(() => {
         </div>
 
         <BaseStockChart
-          v-else-if="selectedSymbol && !selectedStrategy"
-          :symbol="selectedSymbol"
+          v-else-if="!selectedStrategy"
+          :symbol="selectedSymbolLabel!"
           :strategie="null"
           :data="stockData"
           :log-scale="logScale"
         />
 
         <SmaStockChart
-          v-else-if="selectedSymbol && selectedStrategy === 'sma' && finalSmaData"
-          :symbol="selectedSymbol"
+          v-else-if="selectedStrategyValue === 'sma' && finalSmaData"
+          :symbol="selectedSymbolLabel!"
           :data="finalSmaData"
           :log-scale="logScale"
         />
 
         <div v-else>
-          Strategy <strong>{{ selectedStrategy }}</strong> not supported yet.
+          Strategy <strong>{{ selectedStrategyLabel }}</strong> not supported yet.
         </div>
       </div>
     </section>

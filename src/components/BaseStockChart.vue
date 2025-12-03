@@ -55,6 +55,9 @@ const renderBaseChart = () => {
       left: 'center',
       top: 40,
       itemGap: 30,
+      icon: 'rect',
+      itemWidth: 16,
+      itemHeight: 1.8,
     },
 
     grid: {

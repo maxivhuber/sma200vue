@@ -1,23 +1,27 @@
 <script setup lang="ts">
+import type { LabeledItem } from '@/types/LabeledItem'
 import { ref, watch } from 'vue'
 
 const props = defineProps<{
-  symbols: { value: string; label: string }[]
-  modelValue?: string | null
+  symbols: LabeledItem[]
+  modelValue?: LabeledItem | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | null): void
+  'update:modelValue': [value: LabeledItem | null]
 }>()
 
-const selected = ref<string | null>(props.modelValue ?? null)
+const selected = ref<LabeledItem | null>(props.modelValue ?? null)
 
 watch(
   () => props.modelValue,
   (v) => (selected.value = v ?? null),
 )
 
-watch(selected, (v) => emit('update:modelValue', v))
+function setSelected(item: LabeledItem) {
+  selected.value = item
+  emit('update:modelValue', item)
+}
 </script>
 
 <template>
@@ -28,8 +32,8 @@ watch(selected, (v) => emit('update:modelValue', v))
       <li
         v-for="symbol in symbols"
         :key="symbol.value"
-        @click="selected = symbol.value"
-        :class="{ selected: symbol.value === selected }"
+        @click="setSelected(symbol)"
+        :class="{ selected: symbol.value === selected?.value }"
       >
         {{ symbol.label }}
       </li>
