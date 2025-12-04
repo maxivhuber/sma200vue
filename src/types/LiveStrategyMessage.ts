@@ -4,7 +4,7 @@ export interface LiveStrategyMessage {
   timestamp: string
   result: {
     date: string
-    prices: number
+    price: number
     sma: number
     upper_band: number
     lower_band: number

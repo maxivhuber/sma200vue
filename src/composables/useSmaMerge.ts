@@ -19,14 +19,14 @@ export function mergeSmaData(
   const liveDate = liveR.date
 
   if (liveDate === lastDate) {
-    r.prices[lastIndex] = liveR.prices
+    r.prices[lastIndex] = liveR.price
     r.sma[lastIndex] = liveR.sma
     r.upper_band[lastIndex] = liveR.upper_band
     r.lower_band[lastIndex] = liveR.lower_band
     r.signal[lastIndex] = liveR.signal
   } else {
     r.dates.push(liveR.date)
-    r.prices.push(liveR.prices)
+    r.prices.push(liveR.price)
     r.sma.push(liveR.sma)
     r.upper_band.push(liveR.upper_band)
     r.lower_band.push(liveR.lower_band)
