@@ -83,7 +83,6 @@ const renderBaseChart = () => {
       axisLine: { lineStyle: { color: '#666' } },
       axisLabel: {
         color: '#777',
-        formatter: (v: string) => v.split('T')[0],
       },
     },
     yAxis: props.logScale
