@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { LabeledItem } from '@/types/LabeledItem'
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   symbols: LabeledItem[]
@@ -11,15 +11,9 @@ const emit = defineEmits<{
   'update:modelValue': [value: LabeledItem | null]
 }>()
 
-const selected = ref<LabeledItem | null>(props.modelValue ?? null)
-
-watch(
-  () => props.modelValue,
-  (v) => (selected.value = v ?? null),
-)
+const selected = computed(() => props.modelValue ?? null)
 
 function setSelected(item: LabeledItem) {
-  selected.value = item
   emit('update:modelValue', item)
 }
 </script>

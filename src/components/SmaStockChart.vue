@@ -199,7 +199,7 @@ const renderChart = () => {
           .filter(Boolean),
       },
     ],
-  })
+  }, { notMerge: true })
 }
 
 onMounted(async () => {
@@ -224,8 +224,10 @@ onMounted(async () => {
   })
 
   renderChart()
-  window.addEventListener('resize', () => chart?.resize())
+  window.addEventListener('resize', onResize)
 })
+
+const onResize = () => chart?.resize()
 
 // Re-render chart when data or logScale changes — but keep zoom
 watch([() => props.data, () => props.logScale], renderChart)
@@ -239,7 +241,11 @@ watch(
   },
 )
 
-onBeforeUnmount(() => chart?.dispose())
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  chart?.dispose()
+  chart = null
+})
 </script>
 
 <style scoped>

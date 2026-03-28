@@ -138,7 +138,7 @@ const renderBaseChart = () => {
         areaStyle: { color: 'rgba(150,150,200,0.25)' },
       },
     ],
-  })
+  }, { notMerge: true })
 
   chart.resize()
 }
@@ -165,8 +165,10 @@ onMounted(async () => {
   })
 
   renderBaseChart()
-  window.addEventListener('resize', () => chart?.resize())
+  window.addEventListener('resize', onResize)
 })
+
+const onResize = () => chart?.resize()
 
 // Re-render chart when data or logScale changes — but keep zoom
 watch([() => props.data, () => props.logScale], renderBaseChart)
@@ -180,7 +182,11 @@ watch(
   },
 )
 
-onBeforeUnmount(() => chart?.dispose())
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  chart?.dispose()
+  chart = null
+})
 </script>
 
 <style scoped>
