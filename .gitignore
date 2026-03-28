@@ -58,3 +58,5 @@ pnpm-debug.log*
 *.sln
 *.sw?
 stats.html
+plan.md
+research.md
