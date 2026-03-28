@@ -13,7 +13,10 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "mock": "tsx mock/server.ts",
+    "mock:generate": "tsx mock/generate-fixtures.ts",
+    "dev:mock": "run-p mock dev"
   },
   "dependencies": {
     "@types/luxon": "^3.7.1",
@@ -25,6 +28,7 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.18.11",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",
@@ -35,9 +39,11 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "3.6.2",
     "rollup-plugin-visualizer": "^6.0.5",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.0",
     "vite": "^7.1.11",
     "vite-plugin-vue-devtools": "^8.0.3",
-    "vue-tsc": "^3.1.1"
+    "vue-tsc": "^3.1.1",
+    "ws": "^8.20.0"
   }
 }
