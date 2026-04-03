@@ -7,6 +7,20 @@ import type { DataZoomEvent } from '@/types/DataZoomEvent'
 import * as echarts from 'echarts'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+const CHART_COLORS = {
+  accent: '#4c8dff',
+  grid: '#2a2d38',
+  text: '#8b8d98',
+  axis: '#3a3d48',
+  tooltip: 'rgba(24, 26, 32, 0.95)',
+  area: 'rgba(76, 141, 255, 0.08)',
+  sma: '#8b8d98',
+  upperBand: '#34d399',
+  lowerBand: '#f87171',
+  buy: '#34d399',
+  sell: '#f87171',
+}
+
 const props = defineProps<{
   symbol: string
   data: {
@@ -31,9 +45,6 @@ const zoomEndValue = ref<number | null>(null)
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 
-const getPrimaryColor = () =>
-  getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
-
 function isDataZoomEvent(raw: unknown): raw is DataZoomEvent {
   return typeof raw === 'object' && raw !== null && (raw as { type?: unknown }).type === 'datazoom'
 }
@@ -42,7 +53,6 @@ const renderChart = () => {
   if (!chart || !props.data) return
 
   const r = props.data.result
-  const primary = getPrimaryColor()
 
   if (zoomStartValue.value === null || zoomEndValue.value === null) {
     const ytdYear = new Date().getFullYear()
@@ -54,152 +64,161 @@ const renderChart = () => {
     zoomEndValue.value = endIndex
   }
 
-  chart.setOption({
-    title: {
-      text: props.symbol,
-      left: 'center',
-      top: 6,
-      textStyle: { fontSize: 18, fontWeight: 'bold' },
+  const yAxisBase = {
+    scale: true,
+    min: 'dataMin' as const,
+    max: 'dataMax' as const,
+    axisLabel: {
+      color: CHART_COLORS.text,
+      formatter: (v: number) => Number(v).toFixed(2),
     },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'cross' },
-      backgroundColor: 'rgba(40,40,40,0.85)',
-      borderWidth: 0,
-      textStyle: { color: '#fff' },
-      valueFormatter: (v: number) => Number(v).toFixed(2),
-    },
-    legend: [
-      {
+    axisLine: { lineStyle: { color: CHART_COLORS.axis } },
+    splitLine: { lineStyle: { color: CHART_COLORS.grid, type: 'dashed' as const } },
+  }
+
+  chart.setOption(
+    {
+      title: {
+        text: props.symbol,
         left: 'center',
-        top: 32,
-        itemGap: 30,
-        data: [
-          { name: 'Price', icon: 'rect' },
-          { name: 'SMA', icon: 'rect' },
-          { name: 'Upper Band', icon: 'rect' },
-          { name: 'Lower Band', icon: 'rect' },
-        ],
-        itemWidth: 16,
-        itemHeight: 1.8,
+        top: 6,
+        textStyle: { fontSize: 18, fontWeight: '600' as const, color: CHART_COLORS.text },
       },
-      {
-        left: 'center',
-        top: 52,
-        itemGap: 15,
-        data: [
-          { name: 'Buy Signal', icon: 'circle' },
-          { name: 'Sell Signal', icon: 'circle' },
-        ],
-        itemWidth: 12,
-        itemHeight: 12,
-        textStyle: { fontSize: 12, color: '#555' },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' },
+        backgroundColor: CHART_COLORS.tooltip,
+        borderColor: CHART_COLORS.grid,
+        borderWidth: 1,
+        textStyle: { color: '#e4e5ea' },
+        valueFormatter: (v: number) => Number(v).toFixed(2),
       },
-    ],
-    grid: { left: 50, right: 30, top: 80, bottom: 50 },
-    xAxis: {
-      type: 'category',
-      data: r.dates,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: {
-        color: '#777',
-      },
-    },
-    yAxis: props.logScale
-      ? {
-          type: 'log',
-          logBase: 10,
-          minorSplitLine: { show: true },
-          scale: true,
-          min: 'dataMin',
-          max: 'dataMax',
-          axisLabel: { color: '#777', formatter: (v: number) => Number(v).toFixed(2) },
-          axisLine: { lineStyle: { color: '#666' } },
-        }
-      : {
-          type: 'value',
-          scale: true,
-          min: 'dataMin',
-          max: 'dataMax',
-          axisLabel: { color: '#777', formatter: (v: number) => Number(v).toFixed(2) },
-          axisLine: { lineStyle: { color: '#666' } },
+      legend: [
+        {
+          left: 'center',
+          top: 32,
+          itemGap: 30,
+          data: [
+            { name: 'Price', icon: 'rect' },
+            { name: 'SMA', icon: 'rect' },
+            { name: 'Upper Band', icon: 'rect' },
+            { name: 'Lower Band', icon: 'rect' },
+          ],
+          itemWidth: 16,
+          itemHeight: 1.8,
+          textStyle: { color: CHART_COLORS.text },
         },
-    dataZoom: [
-      {
-        type: 'inside',
-        zoomOnMouseWheel: true,
-        startValue: zoomStartValue.value,
-        endValue: zoomEndValue.value,
+        {
+          left: 'center',
+          top: 52,
+          itemGap: 15,
+          data: [
+            { name: 'Buy Signal', icon: 'circle' },
+            { name: 'Sell Signal', icon: 'circle' },
+          ],
+          itemWidth: 12,
+          itemHeight: 12,
+          textStyle: { fontSize: 12, color: CHART_COLORS.text },
+        },
+      ],
+      grid: { left: 50, right: 30, top: 80, bottom: 50 },
+      xAxis: {
+        type: 'category',
+        data: r.dates,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: CHART_COLORS.axis } },
+        axisLabel: { color: CHART_COLORS.text },
       },
-      {
-        type: 'slider',
-        height: 20,
-        bottom: 10,
-        startValue: zoomStartValue.value,
-        endValue: zoomEndValue.value,
-      },
-    ],
-    series: [
-      {
-        name: 'Price',
-        type: 'line',
-        color: primary,
-        symbol: 'none',
-        smooth: true,
-        data: r.prices,
-        lineStyle: { width: 2.2, color: primary },
-        areaStyle: { color: 'rgba(150,150,200,0.25)' },
-      },
-      {
-        name: 'SMA',
-        type: 'line',
-        color: '#888',
-        symbol: 'none',
-        smooth: true,
-        data: r.sma,
-        lineStyle: { width: 1.5, color: '#888' },
-      },
-      {
-        name: 'Upper Band',
-        type: 'line',
-        color: 'green',
-        smooth: true,
-        symbol: 'none',
-        data: r.upper_band,
-        lineStyle: { width: 1, color: 'green', type: 'dashed' },
-      },
-      {
-        name: 'Lower Band',
-        type: 'line',
-        color: 'red',
-        symbol: 'none',
-        smooth: true,
-        data: r.lower_band,
-        lineStyle: { width: 1, color: 'red', type: 'dashed' },
-      },
-      {
-        name: 'Buy Signal',
-        type: 'scatter',
-        symbol: 'circle',
-        symbolSize: 10,
-        itemStyle: { color: '#00c853' },
-        data: r.prices
-          .map((p, i) => (r.signal[i] === 'BUY' ? [r.dates[i], p] : null))
-          .filter(Boolean),
-      },
-      {
-        name: 'Sell Signal',
-        type: 'scatter',
-        symbol: 'circle',
-        symbolSize: 10,
-        itemStyle: { color: '#d50000' },
-        data: r.prices
-          .map((p, i) => (r.signal[i] === 'SELL' ? [r.dates[i], p] : null))
-          .filter(Boolean),
-      },
-    ],
-  }, { notMerge: true })
+      yAxis: props.logScale
+        ? { type: 'log', logBase: 10, minorSplitLine: { show: true }, ...yAxisBase }
+        : { type: 'value', ...yAxisBase },
+      dataZoom: [
+        {
+          type: 'inside',
+          zoomOnMouseWheel: true,
+          startValue: zoomStartValue.value,
+          endValue: zoomEndValue.value,
+        },
+        {
+          type: 'slider',
+          height: 20,
+          bottom: 10,
+          startValue: zoomStartValue.value,
+          endValue: zoomEndValue.value,
+          borderColor: 'transparent',
+          backgroundColor: '#1e2028',
+          fillerColor: 'rgba(76, 141, 255, 0.15)',
+          handleStyle: { color: '#4c8dff', borderColor: '#4c8dff' },
+          moveHandleStyle: { color: '#4c8dff' },
+          textStyle: { color: '#8b8d98' },
+          dataBackground: {
+            lineStyle: { color: '#2a2d38' },
+            areaStyle: { color: '#1e2028' },
+          },
+        },
+      ],
+      series: [
+        {
+          name: 'Price',
+          type: 'line',
+          color: CHART_COLORS.accent,
+          symbol: 'none',
+          smooth: true,
+          data: r.prices,
+          lineStyle: { width: 2, color: CHART_COLORS.accent },
+          areaStyle: { color: CHART_COLORS.area },
+        },
+        {
+          name: 'SMA',
+          type: 'line',
+          color: CHART_COLORS.sma,
+          symbol: 'none',
+          smooth: true,
+          data: r.sma,
+          lineStyle: { width: 1.5, color: CHART_COLORS.sma },
+        },
+        {
+          name: 'Upper Band',
+          type: 'line',
+          color: CHART_COLORS.upperBand,
+          smooth: true,
+          symbol: 'none',
+          data: r.upper_band,
+          lineStyle: { width: 1, color: CHART_COLORS.upperBand, type: 'dashed' },
+        },
+        {
+          name: 'Lower Band',
+          type: 'line',
+          color: CHART_COLORS.lowerBand,
+          symbol: 'none',
+          smooth: true,
+          data: r.lower_band,
+          lineStyle: { width: 1, color: CHART_COLORS.lowerBand, type: 'dashed' },
+        },
+        {
+          name: 'Buy Signal',
+          type: 'scatter',
+          symbol: 'circle',
+          symbolSize: 10,
+          itemStyle: { color: CHART_COLORS.buy },
+          data: r.prices
+            .map((p, i) => (r.signal[i] === 'BUY' ? [r.dates[i], p] : null))
+            .filter(Boolean),
+        },
+        {
+          name: 'Sell Signal',
+          type: 'scatter',
+          symbol: 'circle',
+          symbolSize: 10,
+          itemStyle: { color: CHART_COLORS.sell },
+          data: r.prices
+            .map((p, i) => (r.signal[i] === 'SELL' ? [r.dates[i], p] : null))
+            .filter(Boolean),
+        },
+      ],
+    },
+    { notMerge: true },
+  )
 }
 
 onMounted(async () => {
@@ -229,10 +248,8 @@ onMounted(async () => {
 
 const onResize = () => chart?.resize()
 
-// Re-render chart when data or logScale changes — but keep zoom
 watch([() => props.data, () => props.logScale], renderChart)
 
-// Reset zoom when symbol changes → next renderChart() uses YTD
 watch(
   () => props.symbol,
   () => {

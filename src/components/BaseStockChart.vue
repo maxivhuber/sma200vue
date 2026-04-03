@@ -8,6 +8,15 @@ import type { StockDataPoint } from '@/types/StockDataPoint'
 import * as echarts from 'echarts'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+const CHART_COLORS = {
+  accent: '#4c8dff',
+  grid: '#2a2d38',
+  text: '#8b8d98',
+  axis: '#3a3d48',
+  tooltip: 'rgba(24, 26, 32, 0.95)',
+  area: 'rgba(76, 141, 255, 0.08)',
+}
+
 const props = defineProps<{
   symbol: string
   strategie: string | null
@@ -21,9 +30,6 @@ const zoomEndValue = ref<number | null>(null)
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 
-const getPrimaryColor = () =>
-  getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
-
 function isDataZoomEvent(raw: unknown): raw is DataZoomEvent {
   return typeof raw === 'object' && raw !== null && (raw as { type?: unknown }).type === 'datazoom'
 }
@@ -31,7 +37,6 @@ function isDataZoomEvent(raw: unknown): raw is DataZoomEvent {
 const renderBaseChart = () => {
   if (!chart || !props.data) return
 
-  const primary = getPrimaryColor()
   const dates = props.data.map((p) => p.Date)
   const closes = props.data.map((p) => p.Close)
 
@@ -46,99 +51,100 @@ const renderBaseChart = () => {
     zoomEndValue.value = endIndex
   }
 
-  chart.setOption({
-    color: [primary],
-    title: {
-      text: props.symbol,
-      left: 'center',
-      top: 10,
-      textStyle: { fontSize: 16, fontWeight: 'bold' },
+  const yAxisBase = {
+    scale: true,
+    min: 'dataMin' as const,
+    max: 'dataMax' as const,
+    axisLabel: {
+      formatter: (v: number) => Number(v).toFixed(2),
+      color: CHART_COLORS.text,
     },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'cross' },
-      backgroundColor: 'rgba(40,40,40,0.85)',
-      borderWidth: 0,
-      textStyle: { color: '#fff' },
-      valueFormatter: (v: number) => Number(v).toFixed(2),
-    },
-    legend: {
-      left: 'center',
-      top: 40,
-      itemGap: 30,
-      icon: 'rect',
-      itemWidth: 16,
-      itemHeight: 1.8,
-    },
-    grid: {
-      left: 50,
-      right: 30,
-      top: 80,
-      bottom: 50,
-    },
-    xAxis: {
-      type: 'category',
-      data: dates,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: {
-        color: '#777',
+    axisLine: { lineStyle: { color: CHART_COLORS.axis } },
+    splitLine: { lineStyle: { color: CHART_COLORS.grid, type: 'dashed' as const } },
+  }
+
+  chart.setOption(
+    {
+      title: {
+        text: props.symbol,
+        left: 'center',
+        top: 10,
+        textStyle: { fontSize: 16, fontWeight: '600' as const, color: CHART_COLORS.text },
       },
-    },
-    yAxis: props.logScale
-      ? {
-          type: 'log',
-          logBase: 10,
-          minorSplitLine: { show: true },
-          scale: true,
-          min: 'dataMin',
-          max: 'dataMax',
-          axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(2),
-            color: '#777',
-          },
-          axisLine: { lineStyle: { color: '#666' } },
-        }
-      : {
-          type: 'value',
-          scale: true,
-          min: 'dataMin',
-          max: 'dataMax',
-          axisLabel: {
-            formatter: (v: number) => Number(v).toFixed(2),
-            color: '#777',
-          },
-          axisLine: { lineStyle: { color: '#666' } },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' },
+        backgroundColor: CHART_COLORS.tooltip,
+        borderColor: CHART_COLORS.grid,
+        borderWidth: 1,
+        textStyle: { color: '#e4e5ea' },
+        valueFormatter: (v: number) => Number(v).toFixed(2),
+      },
+      legend: {
+        left: 'center',
+        top: 40,
+        itemGap: 30,
+        icon: 'rect',
+        itemWidth: 16,
+        itemHeight: 1.8,
+        textStyle: { color: CHART_COLORS.text },
+      },
+      grid: {
+        left: 50,
+        right: 30,
+        top: 80,
+        bottom: 50,
+      },
+      xAxis: {
+        type: 'category',
+        data: dates,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: CHART_COLORS.axis } },
+        axisLabel: { color: CHART_COLORS.text },
+      },
+      yAxis: props.logScale
+        ? { type: 'log', logBase: 10, minorSplitLine: { show: true }, ...yAxisBase }
+        : { type: 'value', ...yAxisBase },
+      dataZoom: [
+        {
+          type: 'inside',
+          zoomOnMouseWheel: true,
+          startValue: zoomStartValue.value,
+          endValue: zoomEndValue.value,
         },
-
-    dataZoom: [
-      {
-        type: 'inside',
-        zoomOnMouseWheel: true,
-        startValue: zoomStartValue.value,
-        endValue: zoomEndValue.value,
-      },
-      {
-        type: 'slider',
-        height: 20,
-        bottom: 10,
-        startValue: zoomStartValue.value,
-        endValue: zoomEndValue.value,
-      },
-    ],
-
-    series: [
-      {
-        name: 'Close',
-        type: 'line',
-        symbol: 'none',
-        smooth: true,
-        data: closes,
-        lineStyle: { width: 2.2, color: primary },
-        areaStyle: { color: 'rgba(150,150,200,0.25)' },
-      },
-    ],
-  }, { notMerge: true })
+        {
+          type: 'slider',
+          height: 20,
+          bottom: 10,
+          startValue: zoomStartValue.value,
+          endValue: zoomEndValue.value,
+          borderColor: 'transparent',
+          backgroundColor: '#1e2028',
+          fillerColor: 'rgba(76, 141, 255, 0.15)',
+          handleStyle: { color: '#4c8dff', borderColor: '#4c8dff' },
+          moveHandleStyle: { color: '#4c8dff' },
+          textStyle: { color: '#8b8d98' },
+          dataBackground: {
+            lineStyle: { color: '#2a2d38' },
+            areaStyle: { color: '#1e2028' },
+          },
+        },
+      ],
+      series: [
+        {
+          name: 'Close',
+          type: 'line',
+          symbol: 'none',
+          smooth: true,
+          data: closes,
+          lineStyle: { width: 2, color: CHART_COLORS.accent },
+          areaStyle: { color: CHART_COLORS.area },
+          color: CHART_COLORS.accent,
+        },
+      ],
+    },
+    { notMerge: true },
+  )
 
   chart.resize()
 }
@@ -170,10 +176,8 @@ onMounted(async () => {
 
 const onResize = () => chart?.resize()
 
-// Re-render chart when data or logScale changes — but keep zoom
 watch([() => props.data, () => props.logScale], renderBaseChart)
 
-// Reset zoom when symbol changes → next renderChart() uses YTD
 watch(
   () => props.symbol,
   () => {

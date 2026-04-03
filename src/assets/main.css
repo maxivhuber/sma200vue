@@ -1,12 +1,54 @@
 :root {
-  --primary-color: #0077cc;
-  --radius: 8px;
-  --space: 1.5rem;
-  --bg-light: #f9f9fb;
-  --text-color: #222;
-  --text-muted: #666;
-  --error-color: #c00;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Palette */
+  --bg-base: #0f1117;
+  --bg-surface: #181a20;
+  --bg-surface-hover: #1e2028;
+  --bg-elevated: #23252e;
+  --border-color: #2a2d38;
+  --border-subtle: #1f2129;
+
+  /* Text */
+  --text-primary: #e4e5ea;
+  --text-secondary: #8b8d98;
+  --text-muted: #5c5e6a;
+
+  /* Accent */
+  --accent: #4c8dff;
+  --accent-hover: #6aa1ff;
+  --accent-subtle: rgba(76, 141, 255, 0.12);
+
+  /* Signals */
+  --signal-buy: #34d399;
+  --signal-sell: #f87171;
+
+  /* Feedback */
+  --error-color: #ef4444;
+
+  /* Spacing scale */
+  --space-xs: 0.375rem;
+  --space-sm: 0.75rem;
+  --space-md: 1.25rem;
+  --space-lg: 1.75rem;
+  --space-xl: 2.5rem;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html,
@@ -14,152 +56,229 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  font-family: system-ui, sans-serif;
-  color: var(--text-color);
-  background-color: var(--bg-light);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
 }
 
 .app {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: var(--space);
-  gap: var(--space);
-  box-sizing: border-box;
-
-  /* Added */
-  border-radius: 12px;
+  padding: var(--space-md);
+  gap: var(--space-md);
 }
 
-.panel {
-  background: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--space);
-}
+/* Header */
 
-/* Added: sticky header */
 .header {
-  text-align: center;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
+
+.header-logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.header-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+/* Content grid */
 
 .content {
   flex: 1;
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--space);
+  grid-template-columns: 260px 1fr;
+  gap: var(--space-md);
   height: 100%;
   overflow: hidden;
 }
+
+/* Sidebar */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: var(--space-md);
+  overflow-y: auto;
+  align-self: start;
+  max-height: 100%;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border-color);
+}
+
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0 var(--space-xs);
+}
+
+/* Selector list */
+
+.selector-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  border-left: 3px solid transparent;
+  color: var(--text-secondary);
+}
+
+.selector-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.selector-item.active {
+  background: var(--accent-subtle);
+  border-left-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.selector-item.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.selector-label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.selector-value {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Chart area */
 
 .chart-area {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-
-  /* Added: subtle border */
-  border: 1px solid #e6e6e9;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
 }
 
 .chart-area > * {
   flex: 1;
 }
 
+/* Toggle switch */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: var(--space-xs) var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+
+.toggle-row:hover {
+  color: var(--text-primary);
+}
+
+.toggle-row input[type='checkbox'] {
+  appearance: none;
+  width: 34px;
+  height: 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-row input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.toggle-row input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-row input[type='checkbox']:checked::after {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+/* Status messages */
+
 .status {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: center;
+  padding: var(--space-lg);
 }
 
 .status.error {
   color: var(--error-color);
-}
-
-.symbol-selector {
-  display: flex;
-  flex-direction: column;
-
-  /* Added: more breathable spacing */
-  gap: 1rem;
-}
-
-.symbol-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.symbol-list li {
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-/* Added small active feedback */
-.symbol-list li:active {
-  transform: scale(0.98);
-}
-
-.symbol-list li:hover {
-  color: var(--primary-color);
-}
-
-.symbol-list li.selected {
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.log-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: color 0.2s;
-}
-
-/* Added active feedback */
-.log-toggle:active {
-  transform: scale(0.98);
-}
-
-/* Added: make checkbox a bit clearer */
-.log-toggle input {
-  transform: scale(1.2);
-}
-
-.log-toggle:hover {
-  color: var(--primary-color);
-}
-
-.panel-separator {
-  margin: 1rem 0;
-  border: none;
-  border-top: 1px solid #e2e2e5;
-}
-
-.padded-block {
-  padding-top: 0.5rem;
-}
-
-.symbol-panel {
-  align-self: start;
-}
-
-/* Added: subtle panel hover improvement */
-.symbol-panel:hover {
-  background: #fafafe;
-  transition: background 0.2s;
-}
-
-.panel-bottom-spacer {
-  height: 0.5rem;
 }

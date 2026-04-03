@@ -19,18 +19,17 @@ function setSelected(item: LabeledItem) {
 </script>
 
 <template>
-  <div class="symbol-selector">
-    <p v-if="!symbols.length" class="status">No symbols available.</p>
-
-    <ul v-else class="symbol-list">
-      <li
-        v-for="symbol in symbols"
-        :key="symbol.value"
-        @click="setSelected(symbol)"
-        :class="{ selected: symbol.value === selected?.value }"
-      >
-        {{ symbol.label }}
-      </li>
-    </ul>
-  </div>
+  <ul v-if="symbols.length" class="selector-list">
+    <li
+      v-for="symbol in symbols"
+      :key="symbol.value"
+      @click="setSelected(symbol)"
+      class="selector-item"
+      :class="{ active: symbol.value === selected?.value }"
+    >
+      <span class="selector-label">{{ symbol.label }}</span>
+      <span class="selector-value">{{ symbol.value }}</span>
+    </li>
+  </ul>
+  <p v-else class="status">No symbols available.</p>
 </template>

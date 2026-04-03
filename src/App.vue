@@ -50,12 +50,13 @@ const finalSmaData = computed(() =>
 
 <template>
   <main class="app">
-    <header class="panel header">
-      <h2>ChartLab🧪🧫</h2>
+    <header class="header">
+      <span class="header-logo">ChartLab</span>
+      <span class="header-badge">v0.1</span>
     </header>
 
     <section class="content">
-      <div class="panel symbol-panel">
+      <div class="sidebar">
         <div v-if="symbolsLoading" class="status">
           <LoadingSpinner />
         </div>
@@ -64,40 +65,40 @@ const finalSmaData = computed(() =>
           Failed to load symbols: {{ symbolsError }}
         </div>
 
-        <div v-else class="symbol-selector">
-          <h3 class="panel-title">Symbols</h3>
-          <SymbolSelector v-model="selectedSymbol" :symbols="symbols" />
+        <template v-else>
+          <div class="sidebar-section">
+            <h3 class="section-title">Symbols</h3>
+            <SymbolSelector v-model="selectedSymbol" :symbols="symbols" />
+          </div>
 
-          <hr class="panel-separator" />
+          <div class="sidebar-divider"></div>
 
-          <h3 class="panel-title">Strategies</h3>
-
-          <div class="strategy-section padded-block">
+          <div class="sidebar-section">
+            <h3 class="section-title">Strategies</h3>
             <div v-if="strategiesLoading" class="status">
               <LoadingSpinner />
             </div>
             <div v-else-if="strategiesError" class="status error">
               Failed to load strategies: {{ strategiesError }}
             </div>
-            <div v-else>
-              <StrategieSelector
-                v-model="selectedStrategy"
-                :strategies="strategies"
-                :disabled="!selectedSymbol"
-              />
-            </div>
+            <StrategieSelector
+              v-else
+              v-model="selectedStrategy"
+              :strategies="strategies"
+              :disabled="!selectedSymbol"
+            />
           </div>
 
-          <hr class="panel-separator" />
+          <div class="sidebar-divider"></div>
 
-          <label class="log-toggle">
+          <label class="toggle-row">
             <input type="checkbox" v-model="logScale" />
             <span>Log scale</span>
           </label>
-        </div>
+        </template>
       </div>
 
-      <div class="panel chart-area">
+      <div class="chart-area">
         <div v-if="!selectedSymbol" class="status">Please select a symbol from the left panel.</div>
 
         <div v-else-if="stockLoading || strategieLoading" class="status">

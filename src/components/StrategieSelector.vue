@@ -24,18 +24,16 @@ function toggle(item: LabeledItem) {
 </script>
 
 <template>
-  <div class="symbol-selector strategy-selector">
-    <p v-if="!strategies.length" class="status">No strategies available.</p>
-
-    <ul v-else class="symbol-list strategy-list">
-      <li
-        v-for="strategy in strategies"
-        :key="strategy.value"
-        @click="!disabled && toggle(strategy)"
-        :class="{ selected: strategy.value === selected?.value, disabled }"
-      >
-        {{ strategy.label }}
-      </li>
-    </ul>
-  </div>
+  <ul v-if="strategies.length" class="selector-list">
+    <li
+      v-for="strategy in strategies"
+      :key="strategy.value"
+      @click="!disabled && toggle(strategy)"
+      class="selector-item"
+      :class="{ active: strategy.value === selected?.value, disabled }"
+    >
+      <span class="selector-label">{{ strategy.label }}</span>
+    </li>
+  </ul>
+  <p v-else class="status">No strategies available.</p>
 </template>
