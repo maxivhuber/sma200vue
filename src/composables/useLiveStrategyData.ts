@@ -1,53 +1,38 @@
 import { WS_CONFIG } from '@/api/config'
 import type { LiveStrategyMessage } from '@/types/LiveStrategyMessage'
-import { onBeforeUnmount, ref, watch, type Ref } from 'vue'
+import { onWatcherCleanup, shallowRef, watch, type Ref } from 'vue'
 
+/**
+ * Streams live strategy ticks for the selected symbol/strategy.
+ *
+ * Each watcher run owns exactly one socket and closes it in `onWatcherCleanup`,
+ * which runs before the next run and when the owning component unmounts.
+ */
 export function useLiveStrategyData(symbol: Ref<string | null>, strategy: Ref<string | null>) {
-  const liveData = ref<LiveStrategyMessage | null>(null)
-  let ws: WebSocket | null = null
-
-  const disconnect = () => {
-    if (ws) {
-      ws.onmessage = null
-      ws.close()
-      ws = null
-    }
-  }
-
-  const connect = () => {
-    if (!symbol.value || !strategy.value) return
-    disconnect()
-
-    const url = `${WS_CONFIG.baseURL}analytics/${strategy.value}?symbol=${symbol.value}`
-    ws = new WebSocket(url)
-
-    ws.onmessage = (e) => {
-      try {
-        const parsed = JSON.parse(e.data as string) as LiveStrategyMessage
-        if (parsed.symbol !== symbol.value) return
-        liveData.value = parsed
-      } catch {}
-    }
-
-    ws.onclose = () => {
-      ws = null
-    }
-  }
+  const liveData = shallowRef<LiveStrategyMessage | null>(null)
 
   watch(
     [symbol, strategy],
-    () => {
+    ([s, st]) => {
       liveData.value = null
-      disconnect()
+      if (!s || !st) return
 
-      if (symbol.value && strategy.value) {
-        connect()
+      const params = new URLSearchParams({ symbol: s })
+      const ws = new WebSocket(`${WS_CONFIG.baseURL}analytics/${encodeURIComponent(st)}?${params}`)
+
+      ws.onmessage = (e: MessageEvent<string>) => {
+        try {
+          const msg = JSON.parse(e.data) as LiveStrategyMessage
+          if (msg.symbol === s && msg.strategy === st) liveData.value = msg
+        } catch {
+          // Ignore malformed frames; the next tick replaces them anyway.
+        }
       }
-    },
-    { flush: 'post' },
-  )
 
-  onBeforeUnmount(disconnect)
+      onWatcherCleanup(() => ws.close())
+    },
+    { immediate: true },
+  )
 
   return { liveData }
 }
