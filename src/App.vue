@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useLiveStrategyData } from '@/composables/useLiveStrategyData'
+import { MOBILE_QUERY, useMediaQuery } from '@/composables/useMediaQuery'
 import { mergeSmaData } from '@/composables/useSmaMerge'
 import { useStockData } from '@/composables/useStockData'
 import { useStrategieData } from '@/composables/useStrategieData'
@@ -22,6 +23,7 @@ const selectedSymbolValue = computed(() => selectedSymbol.value?.value ?? null)
 const selectedStrategyValue = computed(() => selectedStrategy.value?.value ?? null)
 
 const logScale = ref(false)
+const isMobile = useMediaQuery(MOBILE_QUERY)
 
 const { symbols, loading: symbolsLoading, error: symbolsError } = useSymbols()
 const { strategies, loading: strategiesLoading, error: strategiesError } = useStrategies()
@@ -112,7 +114,7 @@ const finalSmaData = computed(() =>
           :symbol="selectedSymbol.label"
           :data="stockData"
           :log-scale="logScale"
-          :compact="false"
+          :compact="isMobile"
         />
 
         <SmaStockChart
@@ -121,7 +123,7 @@ const finalSmaData = computed(() =>
           :symbol="selectedSymbol.label"
           :data="finalSmaData"
           :log-scale="logScale"
-          :compact="false"
+          :compact="isMobile"
         />
 
         <div v-else class="status">
