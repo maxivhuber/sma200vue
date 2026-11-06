@@ -340,22 +340,13 @@ body {
     padding: var(--space-xs) var(--space-sm);
     border-left: 0;
     border-bottom: 2px solid transparent;
+    gap: var(--space-xs);
     background: var(--bg-elevated);
     white-space: nowrap;
   }
 
   .selector-item.active {
     border-bottom-color: var(--accent);
-  }
-
-  /* Symbol chips show only the ticker; the full name stays available as the button title. */
-  .selector-label:has(+ .selector-value) {
-    display: none;
-  }
-
-  .selector-value {
-    font-size: 0.85rem;
-    color: inherit;
   }
 
   .chart-area {

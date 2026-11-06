@@ -13,7 +13,6 @@ const selected = defineModel<LabeledItem | null>({ required: true })
         class="selector-item"
         :class="{ active: symbol.value === selected?.value }"
         :aria-pressed="symbol.value === selected?.value"
-        :title="symbol.label"
         @click="selected = symbol"
       >
         <span class="selector-label">{{ symbol.label }}</span>
