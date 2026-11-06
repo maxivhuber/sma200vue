@@ -19,10 +19,7 @@ const selectedSymbol = ref<LabeledItem | null>(null)
 const selectedStrategy = ref<LabeledItem | null>(null)
 
 const selectedSymbolValue = computed(() => selectedSymbol.value?.value ?? null)
-const selectedSymbolLabel = computed(() => selectedSymbol.value?.label ?? null)
-
 const selectedStrategyValue = computed(() => selectedStrategy.value?.value ?? null)
-const selectedStrategyLabel = computed(() => selectedStrategy.value?.label ?? null)
 
 const logScale = ref(false)
 
@@ -111,22 +108,24 @@ const finalSmaData = computed(() =>
 
         <BaseStockChart
           v-else-if="!selectedStrategy"
-          :symbol="selectedSymbolLabel!"
+          :key="selectedSymbol.value"
+          :symbol="selectedSymbol.label"
           :data="stockData"
           :log-scale="logScale"
           :compact="false"
         />
 
         <SmaStockChart
-          v-else-if="selectedStrategyValue === 'sma' && finalSmaData"
-          :symbol="selectedSymbolLabel!"
+          v-else-if="selectedStrategy.value === 'sma' && finalSmaData"
+          :key="selectedSymbol.value"
+          :symbol="selectedSymbol.label"
           :data="finalSmaData"
           :log-scale="logScale"
           :compact="false"
         />
 
-        <div v-else>
-          Strategy <strong>{{ selectedStrategyLabel }}</strong> not supported yet.
+        <div v-else class="status">
+          Strategy <strong>{{ selectedStrategy.label }}</strong> not supported yet.
         </div>
       </div>
     </section>

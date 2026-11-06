@@ -1,38 +1,27 @@
 <script setup lang="ts">
 import type { LabeledItem } from '@/types/LabeledItem'
-import { computed } from 'vue'
 
-const props = defineProps<{
-  strategies: LabeledItem[]
-  modelValue?: LabeledItem | null
-  disabled?: boolean
-}>()
-
-const emit = defineEmits<{
-  'update:modelValue': [value: LabeledItem | null]
-}>()
-
-const selected = computed(() => props.modelValue ?? null)
+defineProps<{ strategies: LabeledItem[]; disabled?: boolean }>()
+const selected = defineModel<LabeledItem | null>({ required: true })
 
 function toggle(item: LabeledItem) {
-  if (selected.value?.value === item.value) {
-    emit('update:modelValue', null)
-  } else {
-    emit('update:modelValue', item)
-  }
+  selected.value = selected.value?.value === item.value ? null : item
 }
 </script>
 
 <template>
-  <ul v-if="strategies.length" class="selector-list">
-    <li
-      v-for="strategy in strategies"
-      :key="strategy.value"
-      @click="!disabled && toggle(strategy)"
-      class="selector-item"
-      :class="{ active: strategy.value === selected?.value, disabled }"
-    >
-      <span class="selector-label">{{ strategy.label }}</span>
+  <ul v-if="strategies.length" class="selector-list" aria-label="Strategies">
+    <li v-for="strategy in strategies" :key="strategy.value">
+      <button
+        type="button"
+        class="selector-item"
+        :class="{ active: strategy.value === selected?.value }"
+        :aria-pressed="strategy.value === selected?.value"
+        :disabled
+        @click="toggle(strategy)"
+      >
+        <span class="selector-label">{{ strategy.label }}</span>
+      </button>
     </li>
   </ul>
   <p v-else class="status">No strategies available.</p>
