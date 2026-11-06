@@ -112,9 +112,9 @@ const finalSmaData = computed(() =>
         <BaseStockChart
           v-else-if="!selectedStrategy"
           :symbol="selectedSymbolLabel!"
-          :strategie="null"
           :data="stockData"
           :log-scale="logScale"
+          :compact="false"
         />
 
         <SmaStockChart
@@ -122,6 +122,7 @@ const finalSmaData = computed(() =>
           :symbol="selectedSymbolLabel!"
           :data="finalSmaData"
           :log-scale="logScale"
+          :compact="false"
         />
 
         <div v-else>
